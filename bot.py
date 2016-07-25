@@ -25,6 +25,15 @@ async def on_message(message):
             if len(arguments) == 1:
                 await client.send_message(message.channel, config['helptext'].format(config['version']))
 
+            if len(arguments) == 2:
+                if arguments[1] == 'give':
+                    pass
+                    # TODO: SQL Select and Update here, as well as logic handling for non-existent records
+
+                if arguments[1] == 'balance':
+                    pass
+                    # TODO: SQL Select and print here
+                
             if len(arguments) > 3:
                 await client.send_message(message.channel,
                                           "Too many arguments! Please see `!cp help` for valid command and usage.")
