@@ -33,7 +33,7 @@ async def on_message(message):
                 if arguments[1] == 'balance':
                     pass
                     # TODO: SQL Select and print here
-                
+
             if len(arguments) > 3:
                 await client.send_message(message.channel,
                                           "Too many arguments! Please see `!cp help` for valid command and usage.")
@@ -50,6 +50,11 @@ async def on_message(message):
         elif message.content.startswith('!sleep'):
             await asyncio.sleep(5)
             await client.send_message(message.channel, 'Done sleeping')
+
+
+async def namechanger():
+    pass
+    # TODO: Background task changes status message every hour from random array
 
 
 with open('bot.conf') as data_file:
