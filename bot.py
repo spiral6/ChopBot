@@ -3,7 +3,9 @@ import random
 import discord
 import asyncio
 import json
+import sys
 
+import dbhandler
 client = discord.Client()
 
 
@@ -17,7 +19,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    if message.author.id == config['noodles'] and message.channel.id == config['channelid']:
+        print(message.content)
         if message.content.startswith('!cp'):
             arguments = message.content.split()
             '''
@@ -25,18 +27,29 @@ async def on_message(message):
             'The bot reads your command and sees {} arguments.'.format(len(arguments)))
             '''
             if len(arguments) == 1:
-                await client.send_message(message.channel, config['helptext'].format(config['version']))
+                if arguments[0] == '!cp' or arguments[0] == '!cphelp':
+                    await client.send_message(message.channel, config['helptext'].format(config['version']))
 
             if len(arguments) == 2:
                 if arguments[1] == 'give':
-                    pass
-                    # TODO: SQL Select and Update here, as well as logic handling for non-existent records
+                    if message.author.id == config['noodles'] and message.channel.id == config['channelid']:
+                        pass
+                    else:
+                        await client.send_message(message.channel,'You need to be Chop to do this.')
+                    # TODO: Verify if user is valid.
 
                 if arguments[1] == 'balance':
                     pass
                     # TODO: SQL Select and print here
 
-            if len(arguments) > 3:
+                if arguments[1] == 'take':
+                    if message.author.id == config['noodles'] and message.channel.id == config['channelid']:
+                        pass
+                    else:
+                        await client.send_message(message.channel, 'You need to be Chop to do this.')
+                    #TODO: Same as give but negative
+
+            if len(arguments) > 4:
                 await client.send_message(message.channel,
                                           "Too many arguments! Please see `!cp help` for valid command and usage.")
 
@@ -54,14 +67,23 @@ async def on_message(message):
             await client.send_message(message.channel, 'Done sleeping')
 
 
-async def namechanger():
+async def statuschanger():
     statusindex = random.randint(0, len(config['status']))
     await client.change_status(game=discord.Game(name=config['status'][statusindex]))
+    print('Status chnaged.')
     await asyncio.sleep(60*30) #asyncio is in seconds, so we doing it every 30 min
-    # TODO: Background task changes status message every hour from random array
+
 
 
 with open('bot.conf') as data_file:
     config = json.load(data_file)
-client.loop.create_task(namechanger())
+
+check = dbhandler.connect()
+if not check:
+    sys.exit(1)
+check = dbhandler.create()
+if not check:
+    sys.exit(1)
+
 client.run(config['token'])
+client.loop.create_task(statuschanger())
