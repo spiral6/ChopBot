@@ -49,7 +49,7 @@ def addbalance(userid, amount):
             db.commit()
             return 'addeduserandbalance'
         else:
-            amount = amount + data[0]
+            amount = float(amount) + float(data[0])
             cursor.execute('UPDATE chopbot SET balance=? WHERE userid=?', (amount, userid))
             db.commit()
             return 'updatedbalance'
