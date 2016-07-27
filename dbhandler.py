@@ -12,6 +12,7 @@ def connect():
         return True
     except sqlite3.Error as e:
         print(e)
+        raise
         return False
 
 
@@ -23,16 +24,18 @@ def create():
         return True
     except sqlite3.Error as e:
         print(e)
+        raise
         return False
 
 
 def checkbalance(userid):
     try:
-        cursor.execute('SELECT balance FROM chopbot WHERE userid=?)', (userid))
+        cursor.execute('SELECT balance FROM chopbot WHERE userid=?', (userid,))
         data = cursor.fetchone()
         return data
     except sqlite3.Error as e:
         print(e)
+        raise
         return False
 
 
@@ -50,6 +53,7 @@ def addbalance(userid, amount):
             cursor.execute('UPDATE chopbot SET balance=? WHERE userid=?', (amount, userid))
             db.commit()
             return 'updatedbalance'
-    except sqlite3 as e:
+    except sqlite3.Error as e:
         print(e)
+        raise
         return 'sqlerrorfromaddbalance'

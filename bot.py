@@ -1,5 +1,5 @@
 import random
-
+import re
 import discord
 import asyncio
 import json
@@ -19,7 +19,7 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-        print(message.content)
+        print('[Message] - ' + message.content)
         if message.content.startswith('!cp'):
             arguments = message.content.split()
             '''
@@ -30,21 +30,67 @@ async def on_message(message):
                 if arguments[0] == '!cp' or arguments[0] == '!cphelp':
                     await client.send_message(message.channel, config['helptext'].format(config['version']))
 
-            if len(arguments) == 2:
+            elif len(arguments) <= 4:
                 if arguments[1] == 'give':
                     if message.author.id == config['noodles'] and message.channel.id == config['channelid']:
-                        pass
+                        userid = re.match(r'<@(?P<id>\d+)>',arguments[3])
+                        if userid is None:
+                            await client.send_message(message.channel, 'Error: Specify a user.\n`!cp give <amount> <user>`')
+                        else:
+                            status = dbhandler.addbalance(int(userid.group('id')), arguments[2])
+                            if status == 'sqlerrorfromcheckbalance':
+                                print('Can\'t add to balance due to database error in checkbalance().')
+                                await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
+                            elif status == 'addeduserandbalance':
+                                print('Added user {} and balance {} successfully.'.format(userid.group('id'),arguments[2]))
+                                await client.send_message(message.channel, ' has gained {} ChopPoints.'.format(arguments[3], arguments[2]))
+                            elif status == 'updatedbalance':
+                                print('Updated balance for user {}'.format(userid.group('id')))
+                                await client.send_message(message.channel,' has gained {} ChopPoints.'.format(arguments[3],arguments[2]))
+                            elif status == 'sqlerrorfromaddbalance':
+                                print('Can\'t add to balance due to database error in addbalance().')
+                                await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
+                            else:
+                                print('I have no idea how you got here.')
                     else:
                         await client.send_message(message.channel,'You need to be Chop to do this.')
                     # TODO: Verify if user is valid.
 
                 if arguments[1] == 'balance':
-                    pass
+                    status = dbhandler.checkbalance(message.author.id)
+                    if not status:
+                        await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
+                    else:
+                        await client.send_message(message.channel, 'You have {} ChopPoints.'.format(status))
                     # TODO: SQL Select and print here
 
                 if arguments[1] == 'take':
                     if message.author.id == config['noodles'] and message.channel.id == config['channelid']:
-                        pass
+                        userid = re.match(r'<@(?P<id>\d+)>', arguments[3])
+                        if userid is None:
+                            await client.send_message(message.channel,
+                                                      'Error: Specify a user.\n`!cp give <amount> <user>`')
+                        else:
+                            status = dbhandler.addbalance(int(userid.group('id')), arguments[2]*-1)
+                            if status == 'sqlerrorfromcheckbalance':
+                                print('Can\'t add to balance due to database error in checkbalance().')
+                                await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
+                            elif status == 'addeduserandbalance':
+                                print('Added user {} and balance {} successfully.'.format(userid.group('id'),
+                                                                                          arguments[2]))
+                                await client.send_message(message.channel,
+                                                          ' has gained {} ChopPoints.'.format(arguments[3],
+                                                                                              arguments[2]))
+                            elif status == 'updatedbalance':
+                                print('Updated balance for user {}'.format(userid.group('id')))
+                                await client.send_message(message.channel,
+                                                          ' has gained {} ChopPoints.'.format(arguments[3],
+                                                                                              arguments[2]))
+                            elif status == 'sqlerrorfromaddbalance':
+                                print('Can\'t add to balance due to database error in addbalance().')
+                                await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
+                            else:
+                                print('I have no idea how you got here.')
                     else:
                         await client.send_message(message.channel, 'You need to be Chop to do this.')
                     #TODO: Same as give but negative
