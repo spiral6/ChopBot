@@ -1,3 +1,5 @@
+import random
+
 import discord
 import asyncio
 import json
@@ -53,10 +55,13 @@ async def on_message(message):
 
 
 async def namechanger():
-    pass
+    statusindex = random.randint(0, len(config['status']))
+    await client.change_status(game=discord.Game(name=config['status'][statusindex]))
+    await asyncio.sleep(60*30) #asyncio is in seconds, so we doing it every 30 min
     # TODO: Background task changes status message every hour from random array
 
 
 with open('bot.conf') as data_file:
     config = json.load(data_file)
+client.loop.create_task(namechanger())
 client.run(config['token'])
