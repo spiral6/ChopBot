@@ -32,6 +32,11 @@ def checkbalance(userid):
     try:
         cursor.execute('SELECT balance FROM chopbot WHERE userid=?', (userid,))
         data = cursor.fetchone()
+        if data is None:
+            cursor.execute('INSERT INTO chopbot(userid, balance) VALUES(?,?)', (userid, 0))
+            db.commit()
+            cursor.execute('SELECT balance FROM chopbot WHERE userid=?', (userid,))
+            data = cursor.fetchone()
         return data
     except sqlite3.Error as e:
         print(e)
