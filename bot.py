@@ -35,6 +35,7 @@ async def on_message(message):
         elif len(arguments) <= 4:
             if arguments[1] == 'help':
                 await client.send_message(message.channel, helptext)
+
             if arguments[1] == 'give' or arguments[1] == 'add':
                 if message.author.id == config['noodles']:
                     # and message.channel.id == config['channelid'] for constraining to one channel.
@@ -72,6 +73,24 @@ async def on_message(message):
                     await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
                 else:
                     await client.send_message(message.channel, 'You have {} ChopPoints.'.format(status[0]))
+            if arguments[1] == 'leaderboard':
+                status = dbhandler.leaderboard()
+                if not status:
+                    await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
+                else:
+                    leaderboard = ''
+                    counter = 0
+                    for s in status:
+                            if s[1] <= 0:
+                                pass
+                            if counter >= 5: #5 person limit
+                                pass
+                            else:
+                                print(s)
+                                member = message.server.get_member(str(s[0]))
+                                leaderboard += str(counter+1) + ". " + member.display_name + " - " + str(s[1]) + " ChopPoints\n"
+                            counter+=1
+                    await client.send_message(message.channel, leaderboard)
 
             if arguments[1] == 'take' or arguments[1] == 'subtract':
                 if message.author.id == config['noodles'] and message.channel.id == config['channelid']:
@@ -132,8 +151,8 @@ with open('bot.conf') as data_file:
     config = json.load(data_file)
 
 helptext = '''Hey, this is ChopBot version v{}, made by spiral6.
-Source:
-Available commands are `!cp help`, `!cp balance`.'''.format(config['version'])
+Source: https://github.com/spiral6/ChopBot
+Available commands are `!cp help`, `!cp balance`, `!cp leaderboard`.'''.format(config['version'])
 
 check = dbhandler.connect()
 if not check:

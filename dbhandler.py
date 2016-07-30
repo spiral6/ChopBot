@@ -27,6 +27,16 @@ def create():
         raise
         return False
 
+def leaderboard():
+    try:
+        cursor.execute('SELECT userid, balance FROM chopbot ORDER BY balance DESC')
+        data = cursor.fetchall()
+        return data
+    except sqlite3.Error as e:
+        print(e)
+        raise
+        return False
+
 
 def checkbalance(userid):
     try:
