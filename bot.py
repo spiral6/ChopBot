@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import random
 import re
 import discord
@@ -39,7 +41,7 @@ async def on_message(message):
             if arguments[1] == 'give' or arguments[1] == 'add':
                 if message.author.id == config['noodles']:
                     # and message.channel.id == config['channelid'] for constraining to one channel.
-                    userid = re.match(r'<@(?P<id>\d+)>', arguments[3])
+                    userid = re.match(r'<@!?(?P<id>\d+)>', arguments[3])
                     if userid is None:
                         await client.send_message(message.channel,
                                                   'Error: Invalid usage of command.\n`!cp give <amount> <user>`')
