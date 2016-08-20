@@ -24,14 +24,14 @@ async def on_ready():
 async def on_message(message):
     global helptext
     print('[Message] - ' + message.content)
-    if message.content.startswith('!cp'):
+    if message.content.startswith(prefix):
         arguments = message.content.split()
         '''
             await client.send_message(message.channel,
             'The bot reads your command and sees {} arguments.'.format(len(arguments)))
             '''
         if len(arguments) == 1:
-            if arguments[0] == '!cp' or arguments[0] == '!cphelp':
+            if arguments[0] == prefix or arguments[0] == prefix + 'help':
                 await client.send_message(message.channel, helptext)
 
         elif len(arguments) <= 4:
@@ -39,42 +39,47 @@ async def on_message(message):
                 await client.send_message(message.channel, helptext)
 
             if arguments[1] == 'give' or arguments[1] == 'add':
-                if message.author.id == config['noodles']:
+                if message.author.id == config['master']:
                     # and message.channel.id == config['channelid'] for constraining to one channel.
                     userid = re.match(r'<@!?(?P<id>\d+)>', arguments[3])
                     if userid is None:
                         await client.send_message(message.channel,
-                                                  'Error: Invalid usage of command.\n`!cp give <amount> <user>`')
+                                                  'Error: Invalid usage of command.\n`{} give <amount> <user>`'.format(prefix))
                     else:
                         status = dbhandler.addbalance(int(userid.group('id')), arguments[2])
                         if status == 'sqlerrorfromcheckbalance':
                             print('Can\'t add to balance due to database error in checkbalance().')
                             await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
+
                         elif status == 'addeduserandbalance':
                             print('Added user {} and balance {} successfully.'.format(userid.group('id'),
                                                                                       arguments[2]))
-                            await client.send_message(message.channel,
-                                                      '{} has gained {} ChopPoints.'.format(arguments[3],
-                                                                                            arguments[2]))
+                            replymessage = '{} has gained {}'.format(arguments[3], arguments[2]) + currencyname + '.'
+                            await client.send_message(message.channel, replymessage)
+
                         elif status == 'updatedbalance':
                             print('Updated balance for user {}'.format(userid.group('id')))
-                            await client.send_message(message.channel,
-                                                      '{} has gained {} ChopPoints.'.format(arguments[3],
-                                                                                            arguments[2]))
+                            replymessage = '{} has gained {}'.format(arguments[3], arguments[2]) + currencyname + '.'
+                            await client.send_message(message.channel, replymessage)
+
                         elif status == 'sqlerrorfromaddbalance':
                             print('Can\'t add to balance due to database error in addbalance().')
                             await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
+
                         else:
                             print('I have no idea how you got here.')
                 else:
-                    await client.send_message(message.channel, 'You need to be Chop to do this.')
+                    member = message.server.get_member(config['master'])
+                    await client.send_message(message.channel,
+                                              'You need to be {} to do this.'.format(member.display_name))
 
             if arguments[1] == 'balance':
                 status = dbhandler.checkbalance(message.author.id)
                 if not status:
                     await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
                 else:
-                    await client.send_message(message.channel, 'You have {} ChopPoints.'.format(status[0]))
+                    replymessage = 'You have {} '.format(status[0]) + currencyname + '.'
+                    await client.send_message(message.channel, replymessage)
             if arguments[1] == 'leaderboard':
                 status = dbhandler.leaderboard()
                 if not status:
@@ -83,23 +88,24 @@ async def on_message(message):
                     leaderboard = ''
                     counter = 0
                     for s in status:
-                            if s[1] <= 0:
-                                pass
-                            if counter >= 5: #5 person limit
-                                pass
-                            else:
-                                print(s)
-                                member = message.server.get_member(str(s[0]))
-                                leaderboard += str(counter+1) + ". " + member.display_name + " - " + str(s[1]) + " ChopPoints\n"
-                            counter+=1
+                        if s[1] <= 0:
+                            pass
+                        if counter >= 5:  # 5 person limit
+                            pass
+                        else:
+                            print(s)
+                            member = message.server.get_member(str(s[0]))
+                            leaderboard += str(counter + 1) + ". " + member.display_name + " - " + str(
+                                s[1]) + currencyname + "\n"
+                        counter += 1
                     await client.send_message(message.channel, leaderboard)
 
             if arguments[1] == 'take' or arguments[1] == 'subtract':
-                if message.author.id == config['noodles'] and message.channel.id == config['channelid']:
+                if message.author.id == config['master'] and message.channel.id == config['channelid']:
                     userid = re.match(r'<@(?P<id>\d+)>', arguments[3])
                     if userid is None:
                         await client.send_message(message.channel,
-                                                  'Error: Specify a user.\n`!cp give <amount> <user>`')
+                                                  'Error: Specify a user.\n`{} give <amount> <user>`'.format(prefix))
                     else:
                         status = dbhandler.addbalance(int(userid.group('id')), float(arguments[2]) * -1)
                         if status == 'sqlerrorfromcheckbalance':
@@ -108,53 +114,45 @@ async def on_message(message):
                         elif status == 'addeduserandbalance':
                             print('Added user {} and balance {} successfully.'.format(userid.group('id'),
                                                                                       arguments[2]))
-                            await client.send_message(message.channel,
-                                                      '{} has lost {} ChopPoints.'.format(arguments[3],
-                                                                                          arguments[2]))
+                            replymessage = '{} has lost {} '.format(arguments[3], arguments[2]) + currencyname + '.'
+                            await client.send_message(message.channel, replymessage)
+
                         elif status == 'updatedbalance':
                             print('Updated balance for user {}'.format(userid.group('id')))
-                            await client.send_message(message.channel,
-                                                      '{} has lost {} ChopPoints.'.format(arguments[3],
-                                                                                          arguments[2]))
+                            replymessage = '{} has lost {} '.format(arguments[3], arguments[2]) + currencyname + '.'
+                            await client.send_message(message.channel, replymessage)
+
                         elif status == 'sqlerrorfromaddbalance':
                             print('Can\'t add to balance due to database error in addbalance().')
                             await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
                         else:
                             print('I have no idea how you got here.')
                 else:
-                    await client.send_message(message.channel, 'You need to be Chop to do this.')
+                    member = message.server.get_member(config['master'])
+                    await client.send_message(message.channel,
+                                              'You need to be {} to do this.'.format(member.display_name))
 
         if len(arguments) > 4:
             await client.send_message(message.channel,
-                                      "Too many arguments! Please see `!cp help` for valid command and usage.")
-
-    if message.content.startswith('!cmtest'):
-        counter = 0
-        tmp = await client.send_message(message.channel, 'Calculating messages...')
-        async for log in client.logs_from(message.channel, limit=100):
-            if log.author == message.author:
-                counter += 1
-
-        await client.edit_message(tmp, 'You have {} messages.'.format(counter))
-        print(message.channel)
-    elif message.content.startswith('!sleep'):
-        await asyncio.sleep(5)
-        await client.send_message(message.channel, 'Done sleeping')
+                                      "Too many arguments! Please see `{} help` for valid command and usage.".format(prefix))
 
 
+@client.event
 async def statuschanger():
-    statusindex = random.randint(0, len(config['status']))
+    statusindex = random.randint(0, len(config['status']) - 1)
     await client.change_status(game=discord.Game(name=config['status'][statusindex]))
-    print('Status chnaged.')
-    await asyncio.sleep(60 * 30)  # asyncio is in seconds, so we doing it every 30 min
+    print('Status changed to' + "\" " + config['status'][statusindex] + "\"")
+    await asyncio.sleep(60 * 5)  # asyncio is in seconds, so we doing it every 5 min
 
 
 with open('bot.conf') as data_file:
     config = json.load(data_file)
 
-helptext = '''Hey, this is ChopBot version v{}, made by spiral6.
+helptext = '''Hey, this is ChopBot version v{0}, made by spiral6.
 Source: https://github.com/spiral6/ChopBot
-Available commands are `!cp help`, `!cp balance`, `!cp leaderboard`.'''.format(config['version'])
+Available commands are `{1} help`, `{1} balance`, `{1} leaderboard`.'''.format(config['version'], config['prefix'])
+currencyname = config['currencyname']
+prefix = config['prefix']
 
 check = dbhandler.connect()
 if not check:
