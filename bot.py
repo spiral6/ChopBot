@@ -24,12 +24,12 @@ async def on_ready():
 async def on_message(message):
     global helptext
     print('[Message] - ' + message.content)
-    if message.content.startswith(prefix):
-        arguments = message.content.split()
+    arguments = message.content.split()
+    if arguments[0] == prefix:
         '''
-            await client.send_message(message.channel,
-            'The bot reads your command and sees {} arguments.'.format(len(arguments)))
-            '''
+        await client.send_message(message.channel,
+        'The bot reads your command and sees {} arguments.'.format(len(arguments)))
+        '''
         if len(arguments) == 1:
             if arguments[0] == prefix or arguments[0] == prefix + 'help':
                 await client.send_message(message.channel, helptext)
@@ -135,8 +135,7 @@ async def on_message(message):
         if len(arguments) > 4:
             await client.send_message(message.channel,
                                       "Too many arguments! Please see `{} help` for valid command and usage.".format(prefix))
-    elif message.content.startswith('linkme'):
-        arguments = message.content.split()
+    elif arguments[0] == 'linkme':
         if len(arguments) == 4:
             if arguments[1] == 'save' or arguments[1] == 'add':
                 status = dbhandler.addlinkme(arguments[2], arguments[3])
@@ -158,12 +157,19 @@ async def on_message(message):
                     print('Can\'t add to linkme due to database error in addlinkme().')
                     await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
                 pass
-        if len(arguments) == 2:
+
+        elif len(arguments) == 2:
             text = dbhandler.getlinkme(arguments[1])
-            if not text:
-                print('Can\'t find text.')
-                await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
-            await client.send_message(message.channel, text)
+            if text is None:
+                await client.send_message(message.channel, 'There\'s nothing there.')
+            else:
+                print(text)
+                await client.send_message(message.channel, text[0])
+
+        else:
+            await client.send_message(message.channel, 'Invalid usage of command.')
+    else:
+        return None
 
 @client.event
 async def statuschanger():

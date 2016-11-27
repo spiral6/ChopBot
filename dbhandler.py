@@ -77,7 +77,7 @@ def createlinkme():
     try:
         cursor.execute('CREATE TABLE IF NOT EXISTS linkme(name VARCHAR(140), text VARCHAR(140))')
         db.commit()
-        print('Accessed table.')
+        print('Accessed table linkme.')
         return True
     except sqlite3.Error as e:
         print(e)
@@ -86,10 +86,10 @@ def createlinkme():
 
 def getlinkme(name):
     try:
-        cursor.execute('SELECT balance FROM linkme WHERE name=?', (name,))
+        cursor.execute('SELECT text FROM linkme WHERE name=?', (name,))
         data = cursor.fetchone()
         if data is None:
-            return 'Error: Cannot find text.'
+            print('Error: Cannot find text.')
         return data
     except sqlite3.Error as e:
         print(e)
@@ -98,7 +98,7 @@ def getlinkme(name):
 
 def addlinkme(name, text):
     try:
-        data = checkbalance(name)
+        data = checklinkme(name)
         if data is False:
             return 'sqlerrorfromchecklinkme'
         if data is None:
@@ -106,7 +106,7 @@ def addlinkme(name, text):
             db.commit()
             return 'addedlinkme'
         else:
-            cursor.execute('UPDATE chopbot SET text=? WHERE name=?', (text, name))
+            cursor.execute('UPDATE linkme SET text=? WHERE name=?', (text, name))
             db.commit()
             return 'updatedlinkme'
     except sqlite3.Error as e:
@@ -116,13 +116,9 @@ def addlinkme(name, text):
 
 def checklinkme(name):
     try:
-        cursor.execute('SELECT balance FROM linkme WHERE name=?', (name,))
+        cursor.execute('SELECT text FROM linkme WHERE name=?', (name,))
         data = cursor.fetchone()
-        if data is None:
-            cursor.execute('INSERT INTO linkme(name, text) VALUES(?,?)', (name, ''))
-            db.commit()
-            cursor.execute('SELECT balance FROM linkme WHERE name=?', (name,))
-            data = cursor.fetchone()
+        print(data)
         return data
     except sqlite3.Error as e:
         print(e)
