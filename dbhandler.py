@@ -72,3 +72,59 @@ def addbalance(userid, amount):
         print(e)
         raise
         return 'sqlerrorfromaddbalance'
+
+def createlinkme():
+    try:
+        cursor.execute('CREATE TABLE IF NOT EXISTS linkme(name VARCHAR(140), text VARCHAR(140))')
+        db.commit()
+        print('Accessed table.')
+        return True
+    except sqlite3.Error as e:
+        print(e)
+        raise
+        return False
+
+def getlinkme(name):
+    try:
+        cursor.execute('SELECT balance FROM linkme WHERE name=?', (name,))
+        data = cursor.fetchone()
+        if data is None:
+            return 'Error: Cannot find text.'
+        return data
+    except sqlite3.Error as e:
+        print(e)
+        raise
+        return False
+
+def addlinkme(name, text):
+    try:
+        data = checkbalance(name)
+        if data is False:
+            return 'sqlerrorfromchecklinkme'
+        if data is None:
+            cursor.execute('INSERT INTO linkme(name, text) VALUES(?,?)', (name, text))
+            db.commit()
+            return 'addedlinkme'
+        else:
+            cursor.execute('UPDATE chopbot SET text=? WHERE name=?', (text, name))
+            db.commit()
+            return 'updatedlinkme'
+    except sqlite3.Error as e:
+        print(e)
+        raise
+        return 'sqlerrorfromaddlinkme'
+
+def checklinkme(name):
+    try:
+        cursor.execute('SELECT balance FROM linkme WHERE name=?', (name,))
+        data = cursor.fetchone()
+        if data is None:
+            cursor.execute('INSERT INTO linkme(name, text) VALUES(?,?)', (name, ''))
+            db.commit()
+            cursor.execute('SELECT balance FROM linkme WHERE name=?', (name,))
+            data = cursor.fetchone()
+        return data
+    except sqlite3.Error as e:
+        print(e)
+        raise
+        return False

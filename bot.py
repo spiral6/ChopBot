@@ -135,7 +135,35 @@ async def on_message(message):
         if len(arguments) > 4:
             await client.send_message(message.channel,
                                       "Too many arguments! Please see `{} help` for valid command and usage.".format(prefix))
+    elif message.content.startswith('linkme'):
+        arguments = message.content.split()
+        if len(arguments) == 4:
+            if arguments[1] == 'save' or arguments[1] == 'add':
+                status = dbhandler.addlinkme(arguments[2], arguments[3])
+                if status == 'sqlerrorfromchecklinkme':
+                    print('Can\'t add to balance due to database error in checklinkme().')
+                    await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
 
+                elif status == 'addedlinkme':
+                    replymessage = 'Added {}: {} successfully.'.format(arguments[2], arguments[3])
+                    print(replymessage)
+                    await client.send_message(message.channel, replymessage)
+
+                elif status == 'updatedlinkme':
+                    replymessage = 'Updated {} with {}'.format(arguments[2], arguments[3])
+                    print(replymessage)
+                    await client.send_message(message.channel, replymessage)
+
+                elif status == 'sqlerrorfromaddlinkme':
+                    print('Can\'t add to linkme due to database error in addlinkme().')
+                    await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
+                pass
+        if len(arguments) == 2:
+            text = dbhandler.getlinkme(arguments[1])
+            if not text:
+                print('Can\'t find text.')
+                await client.send_message(message.channel, 'Sorry, wasn\'t able to complete that.')
+            await client.send_message(message.channel, text)
 
 @client.event
 async def statuschanger():
@@ -158,6 +186,9 @@ check = dbhandler.connect()
 if not check:
     sys.exit(1)
 check = dbhandler.create()
+if not check:
+    sys.exit(1)
+check = dbhandler.createlinkme()
 if not check:
     sys.exit(1)
 
